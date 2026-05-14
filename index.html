@@ -2803,33 +2803,46 @@ function renderSillyTavernPreview() {
 
   function isPreset(item) {
     if (!item || typeof item !== 'object') return false;
+    // Check both top-level and nested .settings
     const s = item.settings || item;
-    return !!(s && (s.temp_openai !== undefined || s.prompt_order || s.prompts || s.openai_model));
+    const top = item;
+    return !!(
+      (s.temp_openai !== undefined) ||
+      (top.temp_openai !== undefined) ||
+      (s.prompt_order && Array.isArray(s.prompt_order)) ||
+      (top.prompt_order && Array.isArray(top.prompt_order)) ||
+      (s.prompts && Array.isArray(s.prompts)) ||
+      (top.prompts && Array.isArray(top.prompts)) ||
+      s.openai_model ||
+      top.openai_model ||
+      (s.openai_max_context !== undefined) ||
+      (item.temperature !== undefined)
+    );
   }
 
   function isLorebook(item) {
     if (!item || typeof item !== 'object') return false;
-    return !!(item.keys || item.key || item.entries || item.keywords);
+    return !!(item.keys || item.key || item.entries || item.keywords || item.lorebook_entries);
   }
 
-  if (Array.isArray(data)) {
-    for (const item of data) {
-      if (isLorebook(item)) lorebooks.push(normalizeLorebook(item));
-      else if (isPreset(item)) presets.push(normalizePreset(item));
-    }
-  } else if (typeof data === 'object') {
-    if (data.lorebooks) lorebooks = data.lorebooks.map(normalizeLorebook);
-    if (data.presets) presets = data.presets.map(normalizePreset);
-    if (data.entries) lorebooks.push({ id: 'lb-' + Date.now(), name: importedFileName || '导入的世界书', description: '', keys: [], entries: data.entries.map(e => ({...e, lorebookId: 'lb-import', id: e.id || crypto.randomUUID()})), updatedAt: Date.now() });
-    if (data.data && Array.isArray(data.data)) {
-      for (const item of data.data) {
-        if (isLorebook(item)) lorebooks.push(normalizeLorebook(item));
-        else if (isPreset(item)) presets.push(normalizePreset(item));
+  // Recursively scan object for lorebooks and presets
+  function scanObject(obj) {
+    if (Array.isArray(obj)) {
+      for (const item of obj) scanObject(item);
+    } else if (typeof obj === 'object' && obj !== null) {
+      if (isLorebook(obj)) {
+        lorebooks.push(normalizeLorebook(obj));
+      } else if (isPreset(obj)) {
+        presets.push(normalizePreset(obj));
+      }
+      // Also check common wrapper keys
+      for (const key of ['lorebooks','presets','data','entries','items','books','characters']) {
+        if (obj[key] && typeof obj[key] === 'object') scanObject(obj[key]);
       }
     }
-    if (isLorebook(data)) lorebooks.push(normalizeLorebook(data));
-    if (isPreset(data)) presets.push(normalizePreset(data));
   }
+
+  scanObject(data);
 
   const preview = document.getElementById('importPreview');
   preview.innerHTML = `
@@ -2959,55 +2972,83 @@ async function executeImport() {
   function isPreset(item) {
     if (!item || typeof item !== 'object') return false;
     const s = item.settings || item;
-    return !!(s && (s.temp_openai !== undefined || s.prompt_order || s.prompts || s.openai_model));
+    const top = item;
+    return !!(
+      (s.temp_openai !== undefined) ||
+      (top.temp_openai !== undefined) ||
+      (s.prompt_order && Array.isArray(s.prompt_order)) ||
+      (top.prompt_order && Array.isArray(top.prompt_order)) ||
+      (s.prompts && Array.isArray(s.prompts)) ||
+      (top.prompts && Array.isArray(top.prompts)) ||
+      s.openai_model ||
+      top.openai_model ||
+      (s.openai_max_context !== undefined) ||
+      (item.temperature !== undefined)
+    );
   }
 
   function isLorebook(item) {
     if (!item || typeof item !== 'object') return false;
-    return !!(item.keys || item.key || item.entries || item.keywords);
+    return !!(item.keys || item.key || item.entries || item.keywords || item.lorebook_entries);
   }
 
   let lorebooks = [], presets = [];
   const data = importedJsonData;
 
-  if (Array.isArray(data)) {
-    for (const item of data) {
-      if (isLorebook(item)) lorebooks.push(normalizeLorebook(item));
-      else if (isPreset(item)) presets.push(normalizePreset(item));
-    }
-  } else {
-    if (data.lorebooks) lorebooks = data.lorebooks.map(normalizeLorebook);
-    if (data.presets) presets = data.presets.map(normalizePreset);
-    if (data.entries) lorebooks.push({ id: 'lb-' + Date.now(), name: importedFileName || '导入的世界书', description: '', keys: [], entries: data.entries.map(e => ({...e, lorebookId: 'lb-import', id: e.id || crypto.randomUUID()})), updatedAt: Date.now() });
-    if (data.data && Array.isArray(data.data)) {
-      for (const item of data.data) {
-        if (isLorebook(item)) lorebooks.push(normalizeLorebook(item));
-        else if (isPreset(item)) presets.push(normalizePreset(item));
+  function scanObject(obj) {
+    if (Array.isArray(obj)) {
+      for (const item of obj) scanObject(item);
+    } else if (typeof obj === 'object' && obj !== null) {
+      if (isLorebook(obj)) {
+        lorebooks.push(normalizeLorebook(obj));
+      } else if (isPreset(obj)) {
+        presets.push(normalizePreset(obj));
+      }
+      for (const key of ['lorebooks','presets','data','entries','items','books','characters']) {
+        if (obj[key] && typeof obj[key] === 'object') scanObject(obj[key]);
       }
     }
-    if (isLorebook(data)) lorebooks.push(normalizeLorebook(data));
-    if (isPreset(data)) presets.push(normalizePreset(data));
+  }
+
+  scanObject(data);
+
+  // Fallback: raw entries array → wrap as single lorebook
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    if (data.entries && Array.isArray(data.entries) && !isLorebook(data) && !isPreset(data)) {
+      lorebooks.push({
+        id: 'lb-' + Date.now(),
+        name: importedFileName || '导入的世界书',
+        description: data.description || '',
+        keys: data.keys || [],
+        entries: data.entries.map(e => ({...e, lorebookId: 'lb-import', id: e.id || crypto.randomUUID()})),
+        updatedAt: Date.now()
+      });
+    }
   }
 
   let lbCount = 0, pCount = 0, entryCount = 0;
-  for (const lb of lorebooks) {
-    const entries = lb.entries || [];
-    delete lb.entries;
-    await db.lorebooks.put(lb);
-    lbCount++;
-    for (const entry of entries) {
-      entry.lorebookId = lb.id;
-      await db.entries.put(entry);
-      entryCount++;
+  try {
+    for (const lb of lorebooks) {
+      const entries = lb.entries || [];
+      delete lb.entries;
+      await db.lorebooks.put(lb);
+      lbCount++;
+      for (const entry of entries) {
+        entry.lorebookId = lb.id;
+        await db.entries.put(entry);
+        entryCount++;
+      }
     }
+    for (const p of presets) {
+      await db.presets.put(p);
+      pCount++;
+    }
+    renderLorebookPage();
+    showToast('导入完成',`世界书 ${lbCount} 本 (${entryCount} 条目)、预设 ${pCount} 个`,'success');
+  } catch (err) {
+    console.error('Import error:', err);
+    showToast('导入失败', err.message || String(err), 'error');
   }
-  for (const p of presets) {
-    await db.presets.put(p);
-    pCount++;
-  }
-
-  renderLorebookPage();
-  showToast('导入完成',`世界书 ${lbCount} 本 (${entryCount} 条目)、预设 ${pCount} 个`,'success');
 }
 
 async function executeCustomImport() {
