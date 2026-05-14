@@ -14,7 +14,10 @@
       "Bash(git add *)",
       "WebFetch(domain:github.com)",
       "Bash(rm -rf /tmp/tavernlike)",
-      "Bash(git clone *)"
+      "Bash(git clone *)",
+      "Bash(git config *)",
+      "Bash(git -C \"D:/claude\" add -A)",
+      "Bash(git -C \"D:/claude\" diff --cached --stat)"
     ]
   }
 }
