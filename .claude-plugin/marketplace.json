@@ -1,0 +1,15 @@
+{
+  "name": "sillytavern-web",
+  "owner": {
+    "name": "ariespo",
+    "url": "https://github.com/ariespo"
+  },
+  "plugins": [
+    {
+      "name": "sillytavern-web",
+      "source": "./",
+      "description": "SillyTavern ecosystem integration — lorebooks, AI chat, character cards, and presets for any web project.",
+      "version": "3.1.0"
+    }
+  ]
+}

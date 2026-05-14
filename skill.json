@@ -1,0 +1,28 @@
+{
+  "name": "sillytavern-web",
+  "displayName": "SillyTavern Web Automator",
+  "description": "Fully automated SillyTavern ecosystem integration. One command installs lorebooks, presets, and AI chat into any web project. Auto-detects framework, installs dependencies, generates all code.",
+  "version": "3.1.0",
+  "author": "ariespo",
+  "license": "MIT",
+  "keywords": [
+    "sillytavern",
+    "lorebook",
+    "world-info",
+    "ai-chat",
+    "character-cards",
+    "presets",
+    "roleplay"
+  ],
+  "platforms": [
+    "claude"
+  ],
+  "frameworks": [
+    "react",
+    "vue",
+    "vanilla"
+  ],
+  "skills": [
+    "sillytavern-web"
+  ]
+}

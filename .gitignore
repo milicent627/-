@@ -1,0 +1,11 @@
+node_modules/
+.claude/session-env/
+.claude/sessions/
+.claude/shell-snapshots/
+.claude/backups/
+.claude/cache/
+.claude/file-history/
+.claude/telemetry/
+.claude/.last-cleanup
+.claude/history.jsonl
+.claude/plans/

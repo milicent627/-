@@ -1,0 +1,20 @@
+{
+  "name": "sillytavern-web",
+  "version": "3.1.0",
+  "description": "SillyTavern ecosystem integration for web projects — lorebooks, AI chat, character cards, world info, and presets management.",
+  "author": {
+    "name": "ariespo",
+    "url": "https://github.com/ariespo"
+  },
+  "repository": "https://github.com/ariespo/tavernlike",
+  "license": "MIT",
+  "keywords": [
+    "sillytavern",
+    "lorebook",
+    "world-info",
+    "ai-chat",
+    "character-cards",
+    "presets",
+    "roleplay"
+  ]
+}

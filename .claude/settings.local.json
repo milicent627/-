@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude plugin *)",
+      "Bash(export https_proxy=http://127.0.0.1:7897)",
+      "Bash(export http_proxy=http://127.0.0.1:7897)",
+      "Bash(curl -sI http://127.0.0.1:8080/index.html)",
+      "Bash(curl -s \"https://api.github.com/repos/ariespo/tavernlike\")",
+      "Bash(curl *)",
+      "Bash(mkdir -p /tmp/tavernlike-fix/skills/sillytavern-web)",
+      "Bash(mkdir -p /tmp/tavernlike-fix/.claude-plugin)",
+      "Read(//c/Users/20453/AppData/Local/Temp/**)",
+      "Read(//d/tmp/**)",
+      "Bash(git add *)",
+      "WebFetch(domain:github.com)",
+      "Bash(rm -rf /tmp/tavernlike)",
+      "Bash(git clone *)"
+    ]
+  }
+}
