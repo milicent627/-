@@ -2923,23 +2923,51 @@ function detectJsonFields(data, prefix = '') {
 }
 
 function normalizeLorebook(item) {
+  // Convert entries to array (SillyTavern stores entries as an object keyed by keywords)
+  function entriesToArray(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'object') return Object.values(raw);
+    return [];
+  }
+
+  const rawEntries = entriesToArray(item.entries);
+  const lbId = item.id || 'lb-' + crypto.randomUUID();
+
+  // If no entries but item itself looks like a single entry, wrap it
+  if (rawEntries.length === 0 && (item.key || item.keys || item.content)) {
+    rawEntries.push({
+      keys: item.keys || (item.key ? [].concat(item.key) : []),
+      content: item.content || '',
+      order: item.order || 0,
+      probability: item.probability ?? 100,
+      selective: item.selective ?? false,
+      selectiveLogic: item.selectiveLogic || 'or',
+      position: item.position || 'before_char',
+    });
+  }
+
   return {
-    id: item.id || 'lb-' + crypto.randomUUID(),
+    id: lbId,
     name: item.name || item.displayName || '导入的世界书',
     description: item.description || '',
-    keys: item.keys || item.keywords || (item.key ? [item.key] : []) || [],
-    entries: (item.entries || (item.key ? [{
-      id: crypto.randomUUID(), keys: item.keys || [item.key], content: item.content || '',
-      order: item.order || 0, probability: item.probability ?? 100,
-      selective: item.selective ?? false, selectiveLogic: item.selectiveLogic || 'or',
-      position: item.position || 'before_char'
-    }] : [])).map(e => ({
-      id: e.id || crypto.randomUUID(), keys: e.keys || (e.key ? [e.key] : []),
-      content: e.content || '', order: e.order || 0,
-      probability: e.probability ?? 100, selective: e.selective ?? false,
-      selectiveLogic: e.selectiveLogic || 'or', position: e.position || 'before_char',
-      lorebookId: item.id || 'lb-' + crypto.randomUUID()
+    keys: item.keys || item.keywords || (item.key ? [].concat(item.key) : []) || [],
+    entries: rawEntries.map(e => ({
+      id: e.id || e.uid || crypto.randomUUID(),
+      keys: e.keys || (e.key ? [].concat(e.key) : []) || [],
+      content: e.content || '',
+      order: e.order || e.sort_order || 100,
+      probability: e.probability ?? 100,
+      selective: e.selective ?? false,
+      selectiveLogic: e.selectiveLogic || e.selective_logic || 'or',
+      secondaryKeys: e.secondaryKeys || e.secondary_keys || [],
+      constant: e.constant ?? false,
+      position: e.position || 'before_char',
+      lorebookId: lbId
     })),
+    recursiveScanning: item.recursiveScanning ?? item.recursive_scanning ?? false,
+    matchWholeWords: item.matchWholeWords ?? item.match_whole_words ?? false,
+    caseSensitive: item.caseSensitive ?? item.case_sensitive ?? false,
     updatedAt: Date.now()
   };
 }

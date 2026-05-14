@@ -18,7 +18,8 @@
       "Bash(git config *)",
       "Bash(git -C \"D:/claude\" add -A)",
       "Bash(git -C \"D:/claude\" diff --cached --stat)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(node *)"
     ]
   }
 }
